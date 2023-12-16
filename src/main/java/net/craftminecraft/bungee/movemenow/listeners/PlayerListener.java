@@ -1,8 +1,8 @@
 package net.craftminecraft.bungee.movemenow.listeners;
 
 import net.craftminecraft.bungee.movemenow.MoveMeNow;
+import net.craftminecraft.bungee.movemenow.managers.ConfigManager;
 import net.md_5.bungee.api.AbstractReconnectHandler;
-import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -11,14 +11,16 @@ import net.md_5.bungee.api.event.ServerKickEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
-import java.util.Iterator;
+import java.util.List;
 
 public class PlayerListener implements Listener {
 
     private final MoveMeNow plugin;
+    private final ConfigManager configManager;
 
-    public PlayerListener(MoveMeNow plugin) {
+    public PlayerListener(MoveMeNow plugin, ConfigManager configManager) {
         this.plugin = plugin;
+        this.configManager = configManager;
     }
 
     @EventHandler
@@ -37,7 +39,7 @@ public class PlayerListener implements Listener {
             }
         }
 
-        ServerInfo kickTo = this.plugin.getProxy().getServerInfo(plugin.getConfig().getString("servername"));
+        ServerInfo kickTo = this.plugin.getProxy().getServerInfo(this.configManager.getServerName());
 
         // Avoid the loop
         if (kickedFrom != null && kickedFrom.equals(kickTo)) {
@@ -45,28 +47,25 @@ public class PlayerListener implements Listener {
         }
 
         String reason = BaseComponent.toLegacyText(ev.getKickReasonComponent());
-        String[] moveMsg = plugin.getConfig().getString("message").replace("%kickmsg%", reason).split("\n");
+        String[] moveMsg = this.configManager.getMessage().replace("%kickmsg%", reason).split("\n");
 
-        Iterator<String> it = this.plugin.getConfig().getStringList("list").iterator();
-        if (this.plugin.getConfig().getString("mode").equals("whitelist")) {
-            while (it.hasNext()) {
-                String next = it.next();
-                if (reason.contains(next)) {
+        List<String> reasons = this.configManager.getReasons();
+        if (this.configManager.isWhitelist()) {
+            for (String currentReason : reasons) {
+                if (reason.contains(currentReason)) {
                     ev.setCancelled(true);
                     ev.setCancelServer(kickTo);
                     if (!(moveMsg.length == 1 && moveMsg[0].isEmpty())) {
                         for (String line : moveMsg) {
-                            ev.getPlayer().sendMessage(TextComponent.fromLegacyText(
-                                    ChatColor.translateAlternateColorCodes('&', line)));
+                            ev.getPlayer().sendMessage(TextComponent.fromLegacyText(line));
                         }
                     }
                     break; // no need to keep this up !
                 }
             }
         } else {
-            while (it.hasNext()) {
-                String next = it.next();
-                if (reason.contains(next)) {
+            for (String currentReason : reasons) {
+                if (reason.contains(currentReason)) {
                     return;
                 }
             }
@@ -74,8 +73,7 @@ public class PlayerListener implements Listener {
             ev.setCancelServer(kickTo);
             if (!(moveMsg.length == 1 && moveMsg[0].isEmpty())) {
                 for (String line : moveMsg) {
-                    ev.getPlayer().sendMessage(TextComponent.fromLegacyText(
-                            ChatColor.translateAlternateColorCodes('&', line)));
+                    ev.getPlayer().sendMessage(TextComponent.fromLegacyText(line));
                 }
             }
         }
