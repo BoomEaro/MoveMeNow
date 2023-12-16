@@ -1,6 +1,5 @@
 package net.craftminecraft.bungee.movemenow.listeners;
 
-import net.craftminecraft.bungee.movemenow.MoveMeNow;
 import net.craftminecraft.bungee.movemenow.managers.ConfigManager;
 import net.md_5.bungee.api.AbstractReconnectHandler;
 import net.md_5.bungee.api.ProxyServer;
@@ -15,11 +14,9 @@ import java.util.List;
 
 public class PlayerListener implements Listener {
 
-    private final MoveMeNow plugin;
     private final ConfigManager configManager;
 
-    public PlayerListener(MoveMeNow plugin, ConfigManager configManager) {
-        this.plugin = plugin;
+    public PlayerListener(ConfigManager configManager) {
         this.configManager = configManager;
     }
 
@@ -29,8 +26,8 @@ public class PlayerListener implements Listener {
 
         if (ev.getPlayer().getServer() != null) {
             kickedFrom = ev.getPlayer().getServer().getInfo();
-        } else if (this.plugin.getProxy().getReconnectHandler() != null) {// If first server and reconnect handler
-            kickedFrom = this.plugin.getProxy().getReconnectHandler().getServer(ev.getPlayer());
+        } else if (ProxyServer.getInstance().getReconnectHandler() != null) {// If first server and reconnect handler
+            kickedFrom = ProxyServer.getInstance().getReconnectHandler().getServer(ev.getPlayer());
         } else { // If first server and no reconnect handler
             kickedFrom = AbstractReconnectHandler.getForcedHost(ev.getPlayer().getPendingConnection());
             if (kickedFrom == null) // Can still be null if vhost is null... 
@@ -39,7 +36,10 @@ public class PlayerListener implements Listener {
             }
         }
 
-        ServerInfo kickTo = this.plugin.getProxy().getServerInfo(this.configManager.getServerName());
+        ServerInfo kickTo = findServerWithMinimalPlayers(this.configManager.getServers());
+        if (kickTo == null) {
+            return;
+        }
 
         // Avoid the loop
         if (kickedFrom != null && kickedFrom.equals(kickTo)) {
@@ -77,5 +77,24 @@ public class PlayerListener implements Listener {
                 }
             }
         }
+    }
+
+    private static ServerInfo findServerWithMinimalPlayers(List<String> servers) {
+        int count = Integer.MAX_VALUE;
+        ServerInfo find = null;
+        for (String serverName : servers) {
+            ServerInfo serverInfo = ProxyServer.getInstance().getServerInfo(serverName);
+            if (serverInfo == null) {
+                continue;
+            }
+
+            int currentPlayers = serverInfo.getPlayers().size();
+            if (currentPlayers < count) {
+                count = currentPlayers;
+                find = serverInfo;
+            }
+        }
+
+        return find;
     }
 }

@@ -18,7 +18,7 @@ import java.util.logging.Level;
 public class ConfigManager {
 
     private String message;
-    private String serverName;
+    private List<String> servers;
     private boolean whitelist;
     private List<String> reasons;
 
@@ -27,7 +27,7 @@ public class ConfigManager {
            Configuration configuration = ConfigurationProvider.getProvider(YamlConfiguration.class).load(loadResource(plugin, "config.yml"));
 
            this.message = ChatColor.translateAlternateColorCodes('&', configuration.getString("message"));
-           this.serverName = configuration.getString("serverName");
+           this.servers = configuration.getStringList("servers");
            this.whitelist = configuration.getBoolean("whitelist");
            this.reasons = configuration.getStringList("reasons");
 
@@ -40,8 +40,8 @@ public class ConfigManager {
         return this.message;
     }
 
-    public String getServerName() {
-        return this.serverName;
+    public List<String> getServers() {
+        return this.servers;
     }
 
     public boolean isWhitelist() {

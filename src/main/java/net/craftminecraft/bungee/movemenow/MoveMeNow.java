@@ -18,7 +18,7 @@ public class MoveMeNow extends Plugin {
         this.configManager = new ConfigManager();
         this.configManager.load(this);
 
-        this.getProxy().getPluginManager().registerListener(this, new PlayerListener(this, this.configManager));
+        this.getProxy().getPluginManager().registerListener(this, new PlayerListener(this.configManager));
         this.getProxy().getPluginManager().registerCommand(this, new ReloadCommand(this, this.configManager));
 
         this.getLogger().info("Plugin successfully enabled!");

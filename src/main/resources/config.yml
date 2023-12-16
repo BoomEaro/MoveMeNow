@@ -1,5 +1,7 @@
 message: "%kickmsg%"
-serverName: "server2"
+servers:
+  - "backup1"
+  - "backup2"
 whitelist: true
 reasons:
   - ban
