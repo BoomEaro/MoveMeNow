@@ -1,20 +1,19 @@
 package net.craftminecraft.bungee.movemenow;
 
-import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Level;
-
 import com.google.common.io.ByteStreams;
-import net.md_5.bungee.api.config.ServerInfo;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.craftminecraft.bungee.movemenow.commands.ReloadCommand;
+import net.craftminecraft.bungee.movemenow.listeners.PlayerListener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
 
+import java.io.*;
+import java.nio.file.Files;
+import java.util.logging.Level;
 
 public class MoveMeNow extends Plugin {
+
     private Configuration config;
 
     @Override
@@ -39,14 +38,15 @@ public class MoveMeNow extends Plugin {
 
     public File loadResource(String resource) {
         File folder = this.getDataFolder();
-        if (!folder.exists())
+        if (!folder.exists()) {
             folder.mkdir();
+        }
         File resourceFile = new File(folder, resource);
         try {
             if (!resourceFile.exists()) {
                 resourceFile.createNewFile();
                 try (InputStream in = this.getResourceAsStream(resource);
-                     OutputStream out = new FileOutputStream(resourceFile)) {
+                     OutputStream out = Files.newOutputStream(resourceFile.toPath())) {
                     ByteStreams.copy(in, out);
                 }
             }
